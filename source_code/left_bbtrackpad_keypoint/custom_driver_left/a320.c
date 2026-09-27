@@ -115,21 +115,21 @@ static int special_key_listener_cb(const zmk_event_t *eh) {
     const struct zmk_position_state_changed *ev = as_zmk_position_state_changed(eh);
     if (!ev)
         return 0;
-    if (ev->position == 20) {
+    if (ev->position == 66) {
         arrow_key_pressed = ev->state;
-        LOG_INF("space position=49 %s", arrow_key_pressed ? "PRESSED" : "RELEASED");
+        LOG_INF("space position=66 %s", arrow_key_pressed ? "PRESSED" : "RELEASED");
     }
 
     // Scroll key (Space)
-    if (ev->position == 48 || ev->position == 49) {
+    if (ev->position == 65) {
         scroll_key_pressed = ev->state;
-        LOG_INF("space position=49 %s", scroll_key_pressed ? "PRESSED" : "RELEASED");
+        LOG_INF("space position=65 %s", scroll_key_pressed ? "PRESSED" : "RELEASED");
     }
 
     // ★ NEW: Slow key
-    if (ev->position == 22) {
+    if (ev->position == 67) {
         slow_key_pressed = ev->state;
-        LOG_INF("slow_key position=37 %s", slow_key_pressed ? "PRESSED" : "RELEASED");
+        LOG_INF("slow_key position=67 %s", slow_key_pressed ? "PRESSED" : "RELEASED");
     }
 
     return 0;
