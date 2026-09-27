@@ -1,64 +1,92 @@
-# KEYPOINT60 variant
+# KEYPOINT Programmer 60 variant
 
-This branch is the first-pass conversion of KEYPOINT from the stock 48-key split typing
-layout to a 60-key split typing layout with a dedicated number row.
+This branch converts KEYPOINT into a split 60%-class keyboard intended for programming.
 
-## Layout goal
+The design goal is explicit: **normal ANSI punctuation must remain directly available on layer 0**.
+Symbols that programmers use constantly are not hidden behind Fn.
 
-The new physical typing layout adds six switches per half:
+## Layer 0
 
 ```text
-Left                                  Right
-Esc  1  2  3  4  5        |        6  7  8  9  0  Backspace
-Tab  Q  W  E  R  T        |        Y  U  I  O  P  Backspace
-Caps A  S  D  F  G        |        H  J  K  L  ;  Enter
-Shft Z  X  C  V  B        |        N  M  ,  .  /  Shft
-        existing thumb / pointing controls retained
+Esc  1  2  3  4  5   |   6  7  8  9  0  -  =  Backspace
+Tab  Q  W  E  R  T   |   Y  U  I  O  P  [  ]  \
+Caps A  S  D  F  G   |   H  J  K  L  ;  '  Enter
+Shft Z  X  C  V  B   |   N  M  ,  .  /  Shft
+
+LCtrl LGUI LAlt Space | RAlt Fn RGUI RCtrl
+`/~ is also a dedicated layer-0 key.
 ```
 
-This gives **60 primary mechanical typing keys** (48 original + 12 number-row keys).
-The existing center auxiliary mouse/scroll buttons and thumb controls remain separate,
-so the ZMK physical layout contains 68 total logical positions.
+Therefore the following programming symbols are direct on layer 0:
 
-This is a split 60-key layout, not an ANSI 60% plate geometry.
+```text
+` ~
+1 2 3 4 5 6 7 8 9 0
+! @ # $ % ^ & * ( )
+- _ = +
+[ { ] } \ |
+; : ' "
+, < . > / ?
+```
 
-## Matrix allocation
+No `-`, `=`, bracket, quote, semicolon, slash, backslash, comma, period, or grave/tilde
+key requires an Fn layer.
 
-No new MCU GPIOs are required in the firmware design.
+The Fn layer is reserved for things a normal 60% already moves off layer 0, such as
+F1-F12, arrows, Delete, Bluetooth management, bootloader, and output switching.
 
-The stock KEYPOINT matrix is already declared as six rows by eight columns per half.
-The new number-row positions use previously unused row-5 intersections:
+## KEYPOINT-specific controls
 
-- Left number row: `RC(5,0)` through `RC(5,5)`
-- Right number row: `RC(5,8)` through `RC(5,13)`
-- Existing auxiliary switches retain `RC(5,6)`, `RC(5,7)`, `RC(5,14)`, and `RC(5,15)`
+The TrackPoint/A320 functionality remains available. Seven KEYPOINT-specific logical
+positions are appended after the conventional typing surface:
 
-## Firmware changes in this branch
+1. dedicated Grave/Tilde
+2. second Space
+3. left mouse click
+4. right mouse click
+5. pointer scroll modifier
+6. pointer arrow modifier
+7. slow-pointer modifier
 
-- Extended the ZMK matrix transform from 56 to 68 logical positions.
-- Added a 12-key number row to every keymap layer.
-- Extended the physical-layout metadata so ZMK Studio/keymap tooling sees the extra row.
-- Shifted the hard-coded A320/TrackPoint position listeners by 12 positions so the
-  existing scroll/slow/arrow behaviors continue to refer to the same original keys.
+The pointing-device drivers have been updated to follow the new logical position
+numbers, so their hard-coded position listeners still refer to those dedicated controls.
 
-## Hardware status
+## Matrix design
 
-**This branch does not make the current production PCB grow twelve switches.**
+The firmware still uses the existing 6x8 matrix per half. The revised logical map uses
+unused matrix intersections rather than requiring more nRF52840 GPIO pins.
 
-A new PCB/revision is still required to physically route the twelve new switch
-intersections to row 5 and columns 0-5 on each half. The public upstream repository
-does not currently include the original KiCad schematic/PCB/Gerber/BOM, so the PCB
-will need to be recreated from the published firmware pin map and mechanical files.
+This is an architectural advantage of the existing KEYPOINT design: the MCU already
+has enough row/column capacity for the additional switches.
 
-Likewise, the current STEP top cases are still the upstream 48-key mechanical design
-and need a KEYPOINT60 case revision after the PCB outline and switch placement are
-locked.
+## PCB status
+
+**The physical PCB has NOT been modified yet.**
+
+The public upstream repository does not contain the original KiCad/Altium schematic,
+PCB source, Gerber, or BOM. The current branch changes firmware/layout metadata only.
+
+To manufacture the programmer 60 version, a new PCB revision must still be created.
+That PCB must physically add/reroute the switches required by the new 60%-class layout
+and preserve:
+
+- nRF52840
+- TrackPoint
+- A320 optical trackpad
+- both encoders
+- memory LCD
+- USB
+- battery/charging/power circuitry
+- split wireless operation
+
+The current upstream STEP cases are also for the original layout and will need a matching
+mechanical revision.
 
 ## Next hardware pass
 
-1. Recreate the left/right schematic from the published DTS pin assignments.
-2. Add the six number-row switches on each half to the existing 6x8 matrices.
-3. Route a first KiCad PCB while retaining TrackPoint, A320 trackpad, encoders,
-   memory LCD, battery, USB, and charging circuitry.
-4. Update the STEP top cases for the extra row.
-5. Produce JLCPCB Gerbers/BOM/CPL and a prototype build.
+1. Reconstruct the left/right schematic from the published DTS pin assignments.
+2. Lock the exact split ANSI-style switch placement shown above.
+3. Create a KiCad PCB using the existing 6x8 matrix wiring.
+4. Retain the existing TrackPoint/A320/display/encoder interfaces.
+5. Revise the STEP top cases around the new switch layout.
+6. Generate JLCPCB Gerbers, BOM, CPL, and prototype files.
